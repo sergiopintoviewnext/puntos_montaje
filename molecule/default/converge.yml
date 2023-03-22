@@ -1,0 +1,7 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: "Include puntos_montaje"
+      include_role:
+        name: "puntos_montaje"
