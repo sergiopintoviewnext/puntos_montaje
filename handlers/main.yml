@@ -1,5 +1,0 @@
----
-
-- name: Prueba
-  ansible.builtin.debug:
-    msg: "FUNCIONA"
