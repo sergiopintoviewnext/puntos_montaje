@@ -1,0 +1,40 @@
+---
+
+- name: Enviar mail Debian
+  community.general.mail:
+    host: "{{ host }}"
+    port: "{{ puerto }}"
+    username: "{{ mail_usuario }}"
+    password: "{{ password }}"
+    from: "{{ mail_usuario }}"
+    to: "{{ item }}"
+    subject: "Servidor {{ ansible_hostname }}"
+    body: |
+     {% for j in mensaje_debian.results %}
+        {% if j.item.stdout | int < valor_referencia %}
+          {{ j.msg }}
+        {% endif %}
+      {% endfor %}        
+  when: ansible_distribution == "Debian"
+  with_items: "{{ mail_destinatario_debian }}"
+  delegate_to: localhost
+
+
+- name: Enviar mail CentOS
+  community.general.mail:
+    host: "{{ host }}"
+    port: "{{ puerto }}"
+    username: "{{ mail_usuario }}"
+    password: "{{ password }}"
+    from: "{{ mail_usuario }}"
+    to: "{{ item }}"
+    subject: "Servidor {{ ansible_hostname }}"
+    body: |
+     {% for j in mensaje_centos.results %}
+        {% if j.item.stdout | int < valor_referencia %}
+          {{ j.msg }}
+        {% endif %}
+      {% endfor %}
+  when: ansible_distribution == "CentOS"
+  with_items: "{{ mail_destinatario_centos }}"
+  delegate_to: localhost

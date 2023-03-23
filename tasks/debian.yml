@@ -1,0 +1,22 @@
+--- 
+
+- name: Espacio disponible en Debian
+  ansible.builtin.shell:
+    cmd: set -o pipefail && df {{ item }} | tail -n 1 | awk '{print $4}'
+    executable: /bin/bash
+  register: espacio_disponible_debian
+  changed_when: false
+  with_items:
+    - "{{ puntos_montaje_debian }}"
+  when: ansible_distribution == "Debian"
+
+- name: Construir mensaje Debian
+  ansible.builtin.debug:
+    msg: "El punto de montaje {{ item.item }} tiene poco espacio ({{ item.stdout }}) "
+  register: mensaje_debian
+  with_items: "{{ espacio_disponible_debian.results }}"
+  when:
+    - ansible_distribution == "Debian"
+    - item.stdout | int < valor_referencia
+  changed_when: true
+  notify: Enviar mail Debian

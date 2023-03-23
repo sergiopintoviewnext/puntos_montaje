@@ -11,89 +11,11 @@
     var: salida_df.stdout_lines
 
 
-- name: Espacio disponible en Debian
-  ansible.builtin.shell:
-    cmd: set -o pipefail && df {{ item }} | tail -n 1 | awk '{print $4}'
-    executable: /bin/bash
-  register: espacio_disponible_debian
-  changed_when: false
-  with_items: 
-    - "{{ puntos_montaje_debian }}"
-  when: ansible_distribution == "Debian"
+- name: Incluir tareas para Debian
+  ansible.builtin.include_tasks: debian.yml
 
+- name: Incluir tareas para CentOS
+  ansible.builtin.include_tasks: centos.yml
 
-- name: Espacio disponible en CentOS
-  ansible.builtin.shell:
-    cmd: set -o pipefail && df {{ item }} | tail -n 1 | awk '{print $4}'
-    executable: /bin/bash
-  register: espacio_disponible_centos
-  changed_when: false
-  with_items:
-    - "{{ puntos_montaje_centos }}"
-  when: ansible_distribution == "CentOS"
-
-
-- name: Construir mensaje Debian
-  ansible.builtin.debug:
-    msg: "El punto de montaje {{ item.item }} tiene poco espacio ({{ item.stdout }}) "
-  register: mensaje_debian
-  with_items: "{{ espacio_disponible_debian.results }}"
-  when: 
-    - ansible_distribution == "Debian"
-    - item.stdout | int < valor_referencia
-
-
-- name: Construir mensaje Centos
-  ansible.builtin.debug:
-    msg: "El punto de montaje {{ item.item }} tiene poco espacio ({{ item.stdout }})"
-  register: mensaje_centos
-  with_items: "{{ espacio_disponible_centos.results }}"
-  when: 
-    - ansible_distribution == "CentOS"
-    - item.stdout | int < valor_referencia
-
-
-- name: Enviar mail Debian
-  community.general.mail:
-    host: "{{ host }}"
-    port: "{{ puerto }}"
-    username: "{{ mail_usuario }}"
-    password: "{{ password }}"
-    from: "{{ mail_usuario }}"
-    to: "{{ item }}"
-    subject: "Servidor {{ ansible_hostname }}"
-    body: |
-     {% for j in mensaje_debian.results %}
-        {% if j.item.stdout | int < valor_referencia %}
-          {{ j.msg }}
-        {% else %}
-          El punto de montaje {{ j.item.item }} esta OK 
-        {% endif %}
-      {% endfor %}        
-  when: ansible_distribution == "Debian"
-  with_items: "{{ mail_destinatario_debian }}"
-  delegate_to: localhost
-
-
-- name: Enviar mail CentOS
-  community.general.mail:
-    host: "{{ host }}"
-    port: "{{ puerto }}"
-    username: "{{ mail_usuario }}"
-    password: "{{ password }}"
-    from: "{{ mail_usuario }}"
-    to: "{{ item }}"
-    subject: "Servidor {{ ansible_hostname }}"
-    body: |
-     {% for j in mensaje_centos.results %}
-        {% if j.item.stdout | int < valor_referencia %}
-          {{ j.msg }}
-        {% else %}
-          El punto de montaje {{ j.item.item }} esta OK
-        {% endif %}
-      {% endfor %}
-  when: ansible_distribution == "CentOS"
-  with_items: "{{ mail_destinatario_centos }}"
-  delegate_to: localhost
 
 ...

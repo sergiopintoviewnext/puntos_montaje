@@ -1,0 +1,23 @@
+---
+
+- name: Espacio disponible en CentOS
+  ansible.builtin.shell:
+    cmd: set -o pipefail && df {{ item }} | tail -n 1 | awk '{print $4}'
+    executable: /bin/bash
+  register: espacio_disponible_centos
+  changed_when: false
+  with_items:
+    - "{{ puntos_montaje_centos }}"
+  when: ansible_distribution == "CentOS"
+
+
+- name: Construir mensaje Centos
+  ansible.builtin.debug:
+    msg: "El punto de montaje {{ item.item }} tiene poco espacio ({{ item.stdout }})"
+  register: mensaje_centos
+  with_items: "{{ espacio_disponible_centos.results }}"
+  when:
+    - ansible_distribution == "CentOS"
+    - item.stdout | int < valor_referencia
+  changed_when: true
+  notify: Enviar mail CentOS

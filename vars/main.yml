@@ -10,13 +10,15 @@ puntos_montaje_centos:
 valor_referencia: 70000
 
 #variables para conectarse a servidor smtp y enviar mail de aviso
-host: servidor_smtp
+host: smtp.server.com
 puerto: 587
 mail_usuario: usuario1@ejemplo.com
 password: password1234
 
 mail_destinatario_debian: 
   - usuario2@ejemplo.com
+  - usuario3@ejemplo.com
 
 mail_destinatario_centos:
-  - usuario3@ejemplo.com
+  - usuario4@ejemplo.com
+  - usuario5@ejemplo.com
